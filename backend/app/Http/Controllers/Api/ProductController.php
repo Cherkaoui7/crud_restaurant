@@ -93,6 +93,7 @@ class ProductController extends Controller
                 'description',
                 'price',
                 'stock_quantity',
+                'low_stock_threshold',
                 'category',
                 'is_active',
                 'allergens',
@@ -105,6 +106,7 @@ class ProductController extends Controller
                     $product->description,
                     number_format((float) $product->price, 2, '.', ''),
                     (int) $product->stock_quantity,
+                    (int) $product->low_stock_threshold,
                     $product->category?->name,
                     $product->is_active ? 'true' : 'false',
                     $product->allergens->pluck('name')->implode('|'),
@@ -176,15 +178,18 @@ class ProductController extends Controller
             $category = Category::query()->firstOrCreate([
                 'name' => $payload['category'],
             ]);
+            $stockQuantity = max(0, (int) ((($payload['stock_quantity'] ?? '') !== '') ? $payload['stock_quantity'] : 0));
+            $lowStockThreshold = max(0, (int) ((($payload['low_stock_threshold'] ?? '') !== '') ? $payload['low_stock_threshold'] : 5));
 
             $product = Product::query()->updateOrCreate(
                 ['name' => $payload['name']],
                 [
-                    'description' => $payload['description'] !== '' ? $payload['description'] : null,
+                    'description' => (($payload['description'] ?? '') !== '') ? $payload['description'] : null,
                     'price' => (float) ($payload['price'] ?? 0),
-                    'stock_quantity' => max(0, (int) ($payload['stock_quantity'] !== '' ? $payload['stock_quantity'] : 0)),
+                    'stock_quantity' => $stockQuantity,
+                    'low_stock_threshold' => $lowStockThreshold,
                     'category_id' => $category->id,
-                    'is_active' => filter_var($payload['is_active'] !== '' ? $payload['is_active'] : 'true', FILTER_VALIDATE_BOOLEAN),
+                    'is_active' => filter_var((($payload['is_active'] ?? '') !== '') ? $payload['is_active'] : 'true', FILTER_VALIDATE_BOOLEAN),
                 ]
             );
 
@@ -288,6 +293,7 @@ class ProductController extends Controller
     protected function filteredProductsQuery(Request $request): Builder
     {
         $status = (string) $request->input('status', 'all');
+        $inventory = (string) $request->input('inventory', 'all');
         $search = trim((string) $request->input('search', ''));
 
         return Product::query()
@@ -303,6 +309,17 @@ class ProductController extends Controller
             })
             ->when($status === 'inactive', function ($query) {
                 $query->where('is_active', false);
+            })
+            ->when($inventory === 'in', function ($query) {
+                $query->where('stock_quantity', '>', 0)
+                    ->whereColumn('stock_quantity', '>', 'low_stock_threshold');
+            })
+            ->when($inventory === 'low', function ($query) {
+                $query->where('stock_quantity', '>', 0)
+                    ->whereColumn('stock_quantity', '<=', 'low_stock_threshold');
+            })
+            ->when($inventory === 'out', function ($query) {
+                $query->where('stock_quantity', '<=', 0);
             });
     }
 }

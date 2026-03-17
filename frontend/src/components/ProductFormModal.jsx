@@ -8,6 +8,7 @@ function buildInitialState(product) {
     categoryId: product?.category_id ? String(product.category_id) : '',
     price: product?.price ? String(product.price) : '',
     stockQuantity: String(product?.stock_quantity ?? 0),
+    lowStockThreshold: String(product?.low_stock_threshold ?? 5),
     isActive: product?.is_active ?? true,
     imageFile: null,
     existingImageUrl: product?.image_url ?? '',
@@ -33,8 +34,9 @@ function formatFileSize(size) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getStockPreview(quantityValue) {
+function getStockPreview(quantityValue, thresholdValue) {
   const quantity = Math.max(0, Number.parseInt(quantityValue || '0', 10) || 0);
+  const threshold = Math.max(0, Number.parseInt(thresholdValue || '0', 10) || 0);
   const unitLabel = `${quantity} unit${quantity === 1 ? '' : 's'}`;
 
   if (quantity <= 0) {
@@ -45,18 +47,18 @@ function getStockPreview(quantityValue) {
     };
   }
 
-  if (quantity <= 5) {
+  if (quantity <= threshold) {
     return {
       tone: 'low',
       label: 'Low stock',
-      detail: `${unitLabel} left before this menu item needs attention.`,
+      detail: `${unitLabel} left and already inside the alert threshold.`,
     };
   }
 
   return {
     tone: 'in',
     label: 'In stock',
-    detail: `${unitLabel} ready for service.`,
+    detail: `${unitLabel} ready for service. Low stock begins at ${threshold}.`,
   };
 }
 
@@ -75,7 +77,7 @@ export function ProductFormModal({
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef(null);
   const inputId = useId();
-  const stockPreview = getStockPreview(form.stockQuantity);
+  const stockPreview = getStockPreview(form.stockQuantity, form.lowStockThreshold);
 
   const previewUrl = useMemo(() => {
     if (!form.imageFile) {
@@ -200,6 +202,7 @@ export function ProductFormModal({
     payload.append('category_id', form.categoryId);
     payload.append('price', form.price);
     payload.append('stock_quantity', form.stockQuantity);
+    payload.append('low_stock_threshold', form.lowStockThreshold);
     payload.append('is_active', String(form.isActive));
 
     if (form.removeImage) {
@@ -331,6 +334,33 @@ export function ProductFormModal({
                 <p className={`field-help field-help--${stockPreview.tone}`}>
                   <strong>{stockPreview.label}</strong>
                   <span>{stockPreview.detail}</span>
+                </p>
+              )}
+            </div>
+
+            <div className="modal-field">
+              <label className="field-label" htmlFor={`${inputId}-stock-threshold`}>
+                Low-stock threshold <span className="field-label__required">*</span>
+              </label>
+              <input
+                id={`${inputId}-stock-threshold`}
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                className={`form-control ${getFieldError('low_stock_threshold') ? 'is-invalid' : ''}`}
+                value={form.lowStockThreshold}
+                onChange={(event) => updateForm('lowStockThreshold', event.target.value)}
+                placeholder="5"
+              />
+              {getFieldError('low_stock_threshold') ? (
+                <div className="invalid-feedback d-block">{getFieldError('low_stock_threshold')}</div>
+              ) : (
+                <p className="field-help">
+                  <strong>Alert line</strong>
+                  <span>
+                    This product will move into low stock once quantity reaches {Math.max(0, Number.parseInt(form.lowStockThreshold || '0', 10) || 0)} or below.
+                  </span>
                 </p>
               )}
             </div>

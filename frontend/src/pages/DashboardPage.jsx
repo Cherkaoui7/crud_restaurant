@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
   BadgeCheck,
+  Boxes,
   CircleOff,
   FolderTree,
   LayoutDashboard,
@@ -25,12 +26,16 @@ export function DashboardPage() {
     active_products: 0,
     inactive_products: 0,
     total_categories: 0,
+    in_stock_products: 0,
+    low_stock_products: 0,
+    out_of_stock_products: 0,
   };
 
   const activeRatio = stats.total_products
     ? Math.round((stats.active_products / stats.total_products) * 100)
     : 0;
   const inactiveRatio = 100 - activeRatio;
+  const inventoryAlerts = stats.low_stock_products + stats.out_of_stock_products;
 
   const metricCards = [
     {
@@ -85,6 +90,7 @@ export function DashboardPage() {
         <div className="dashboard-hero__chips">
           <span className="filter-chip">{isAdmin ? 'Admin workflow enabled' : 'Read-only session'}</span>
           <span className="filter-chip">{stats.total_products} products tracked</span>
+          <span className="filter-chip">{inventoryAlerts ? `${inventoryAlerts} inventory alerts` : 'Inventory stable'}</span>
         </div>
       </section>
 
@@ -194,6 +200,17 @@ export function DashboardPage() {
                   </span>
                   <ArrowRight size={16} />
                 </Link>
+
+                <Link to="/inventory" className="dashboard-link">
+                  <span className="dashboard-link__icon">
+                    <Boxes size={18} />
+                  </span>
+                  <span className="dashboard-link__body">
+                    <strong>Open inventory</strong>
+                    <small>Review thresholds, low stock, and urgent restocks.</small>
+                  </span>
+                  <ArrowRight size={16} />
+                </Link>
               </div>
 
               <div className="dashboard-summary">
@@ -204,6 +221,10 @@ export function DashboardPage() {
                 <div className="dashboard-summary__item">
                   <span>Structure</span>
                   <strong>{stats.total_categories} category groups available</strong>
+                </div>
+                <div className="dashboard-summary__item">
+                  <span>Inventory</span>
+                  <strong>{inventoryAlerts ? `${inventoryAlerts} products need stock attention` : 'No stock alerts right now'}</strong>
                 </div>
               </div>
             </article>

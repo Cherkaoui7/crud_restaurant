@@ -46,6 +46,13 @@ const statusOptions = [
   { value: 'inactive', label: 'Inactive only' },
 ];
 
+const inventoryOptions = [
+  { value: 'all', label: 'All stock levels' },
+  { value: 'in', label: 'In stock' },
+  { value: 'low', label: 'Low stock' },
+  { value: 'out', label: 'Out of stock' },
+];
+
 function getAllergenCode(allergen) {
   return (allergen.icon ?? allergen.name).slice(0, 2).toUpperCase();
 }
@@ -83,6 +90,7 @@ export function ProductsPage() {
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState('all');
+  const [inventory, setInventory] = useState('all');
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [formState, setFormState] = useState(emptyFormState);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -104,7 +112,7 @@ export function ProductsPage() {
   });
 
   const productsQuery = useQuery({
-    queryKey: ['products', page, deferredSearch, categoryId, status],
+    queryKey: ['products', page, deferredSearch, categoryId, status, inventory],
     queryFn: () =>
       getProducts({
         page,
@@ -112,6 +120,7 @@ export function ProductsPage() {
         ...(deferredSearch ? { search: deferredSearch } : {}),
         ...(categoryId ? { category_id: categoryId } : {}),
         ...(status !== 'all' ? { status } : {}),
+        ...(inventory !== 'all' ? { inventory } : {}),
       }),
   });
 
@@ -124,11 +133,12 @@ export function ProductsPage() {
   const averagePrice = products.length
     ? products.reduce((sum, product) => sum + Number(product.price), 0) / products.length
     : 0;
-  const activeFiltersCount = [Boolean(deferredSearch), Boolean(categoryId), status !== 'all'].filter(Boolean).length;
+  const activeFiltersCount = [Boolean(deferredSearch), Boolean(categoryId), status !== 'all', inventory !== 'all'].filter(Boolean).length;
   const hasActiveFilters = activeFiltersCount > 0;
   const activeRatio = products.length ? Math.round((activeOnPage / products.length) * 100) : 0;
   const selectedCategoryName = categories.find((category) => String(category.id) === categoryId)?.name;
   const selectedStockMeta = selectedProduct ? getStockMeta(selectedProduct) : null;
+  const selectedInventoryLabel = inventoryOptions.find((option) => option.value === inventory)?.label;
 
   const metricCards = [
     {
@@ -241,10 +251,11 @@ export function ProductsPage() {
   function resetFilters() {
     startTransition(() => {
       setPage(1);
-      setSearch('');
-      setCategoryId('');
-      setStatus('all');
-    });
+        setSearch('');
+        setCategoryId('');
+        setStatus('all');
+        setInventory('all');
+      });
   }
 
   async function handleExportCsv() {
@@ -253,6 +264,7 @@ export function ProductsPage() {
         ...(deferredSearch ? { search: deferredSearch } : {}),
         ...(categoryId ? { category_id: categoryId } : {}),
         ...(status !== 'all' ? { status } : {}),
+        ...(inventory !== 'all' ? { inventory } : {}),
       });
       const objectUrl = window.URL.createObjectURL(blob);
       const link = window.document.createElement('a');
@@ -408,6 +420,27 @@ export function ProductsPage() {
               ))}
             </select>
           </label>
+
+          <label className="filter-select">
+            <span>Inventory</span>
+            <select
+              className="form-select"
+              value={inventory}
+              onChange={(event) => {
+                const value = event.target.value;
+                startTransition(() => {
+                  setPage(1);
+                  setInventory(value);
+                });
+              }}
+            >
+              {inventoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="filter-toolbar__summary">
@@ -432,6 +465,12 @@ export function ProductsPage() {
               <span className="filter-chip">
                 <BadgeCheck size={14} />
                 {status === 'active' ? 'Active' : 'Inactive'}
+              </span>
+            ) : null}
+            {inventory !== 'all' ? (
+              <span className="filter-chip">
+                <PackageSearch size={14} />
+                {selectedInventoryLabel}
               </span>
             ) : null}
           </div>
@@ -628,6 +667,10 @@ export function ProductsPage() {
                   <div>
                     <span>Stock level</span>
                     <strong>{selectedStockMeta?.summary}</strong>
+                  </div>
+                  <div>
+                    <span>Alert threshold</span>
+                    <strong>{selectedProduct.low_stock_threshold} units</strong>
                   </div>
                   <div>
                     <span>Inventory state</span>

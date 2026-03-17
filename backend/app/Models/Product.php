@@ -18,6 +18,7 @@ class Product extends Model
         'description',
         'price',
         'stock_quantity',
+        'low_stock_threshold',
         'category_id',
         'image_path',
         'is_active',
@@ -28,6 +29,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'stock_quantity' => 'integer',
+            'low_stock_threshold' => 'integer',
             'is_active' => 'boolean',
         ];
     }

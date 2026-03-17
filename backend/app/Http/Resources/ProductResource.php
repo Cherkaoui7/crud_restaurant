@@ -15,9 +15,10 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $lowStockThreshold = (int) $this->low_stock_threshold;
         $stockState = match (true) {
             (int) $this->stock_quantity <= 0 => 'out',
-            (int) $this->stock_quantity <= 5 => 'low',
+            (int) $this->stock_quantity <= $lowStockThreshold => 'low',
             default => 'in',
         };
 
@@ -28,6 +29,7 @@ class ProductResource extends JsonResource
             'price' => (float) $this->price,
             'formatted_price' => number_format((float) $this->price, 2, '.', ' '),
             'stock_quantity' => (int) $this->stock_quantity,
+            'low_stock_threshold' => $lowStockThreshold,
             'stock_state' => $stockState,
             'is_in_stock' => (int) $this->stock_quantity > 0,
             'category_id' => $this->category_id,

@@ -44,6 +44,7 @@ class ProductApiTest extends TestCase
             'description' => 'Dessert maison',
             'price' => '7.50',
             'stock_quantity' => 12,
+            'low_stock_threshold' => 4,
             'category_id' => $category->id,
             'is_active' => 'true',
             'allergens' => [$dairy->id, $gluten->id],
@@ -61,6 +62,7 @@ class ProductApiTest extends TestCase
             ->assertJsonPath('data.name', 'Fondant chocolat')
             ->assertJsonPath('data.category_id', $category->id)
             ->assertJsonPath('data.stock_quantity', 12)
+            ->assertJsonPath('data.low_stock_threshold', 4)
             ->assertJsonPath('data.stock_state', 'in')
             ->assertJsonPath('data.is_active', true)
             ->assertJsonPath('data.allergens.0.name', 'Dairy')
@@ -70,6 +72,7 @@ class ProductApiTest extends TestCase
             'name' => 'Fondant chocolat',
             'category_id' => $category->id,
             'stock_quantity' => 12,
+            'low_stock_threshold' => 4,
         ]);
         $this->assertDatabaseHas('product_modifiers', [
             'name' => 'Large',
@@ -105,6 +108,7 @@ class ProductApiTest extends TestCase
             'description' => 'Bouillon longuement mijote',
             'price' => 15.90,
             'stock_quantity' => 9,
+            'low_stock_threshold' => 4,
             'category_id' => $category->id,
             'is_active' => true,
         ]);
@@ -120,6 +124,7 @@ class ProductApiTest extends TestCase
             'description' => 'Bouillon miso et garnitures',
             'price' => '16.40',
             'stock_quantity' => 3,
+            'low_stock_threshold' => 4,
             'category_id' => $category->id,
             'is_active' => true,
             'allergens' => [$dairy->id, $soy->id],
@@ -130,6 +135,7 @@ class ProductApiTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('data.stock_quantity', 3)
+            ->assertJsonPath('data.low_stock_threshold', 4)
             ->assertJsonPath('data.stock_state', 'low')
             ->assertJsonPath('data.modifiers.0.name', 'Large bowl')
             ->assertJsonPath('data.allergens.1.name', 'Soy');
@@ -165,6 +171,7 @@ class ProductApiTest extends TestCase
             'description' => 'Boisson froide',
             'price' => '4.20',
             'stock_quantity' => 7,
+            'low_stock_threshold' => 3,
             'category_id' => $category->id,
             'is_active' => true,
         ])->assertForbidden();
@@ -188,6 +195,7 @@ class ProductApiTest extends TestCase
             'description' => 'Cafe froid au lait',
             'price' => 5.80,
             'stock_quantity' => 4,
+            'low_stock_threshold' => 6,
             'category_id' => $category->id,
             'is_active' => true,
         ]);
@@ -207,9 +215,9 @@ class ProductApiTest extends TestCase
 
         $csv = $response->streamedContent();
 
-        $this->assertStringContainsString('name,description,price,stock_quantity,category,is_active,allergens,modifiers', $csv);
+        $this->assertStringContainsString('name,description,price,stock_quantity,low_stock_threshold,category,is_active,allergens,modifiers', $csv);
         $this->assertStringContainsString('Latte glace', $csv);
-        $this->assertStringContainsString(',4,Boisson,true,', $csv);
+        $this->assertStringContainsString(',4,6,Boisson,true,', $csv);
         $this->assertStringContainsString('Soy', $csv);
         $this->assertStringContainsString('Large:1.50', $csv);
     }
@@ -223,9 +231,9 @@ class ProductApiTest extends TestCase
         Sanctum::actingAs($admin);
 
         $csv = <<<CSV
-name,description,price,stock_quantity,category,is_active,allergens,modifiers
-Club Sandwich,Chicken bacon sandwich,11.90,8,Plat principal,true,Gluten|Egg,Large:2.00|Extra bacon:1.50
-Fresh Juice,Orange and carrot,4.80,0,Boisson,true,,50 cl:0.00|1 L:2.50
+name,description,price,stock_quantity,low_stock_threshold,category,is_active,allergens,modifiers
+Club Sandwich,Chicken bacon sandwich,11.90,8,3,Plat principal,true,Gluten|Egg,Large:2.00|Extra bacon:1.50
+Fresh Juice,Orange and carrot,4.80,0,2,Boisson,true,,50 cl:0.00|1 L:2.50
 CSV;
 
         $response = $this->post('/api/products/import/csv', [
@@ -241,10 +249,12 @@ CSV;
         $this->assertDatabaseHas('products', [
             'name' => 'Club Sandwich',
             'stock_quantity' => 8,
+            'low_stock_threshold' => 3,
         ]);
         $this->assertDatabaseHas('products', [
             'name' => 'Fresh Juice',
             'stock_quantity' => 0,
+            'low_stock_threshold' => 2,
         ]);
         $this->assertDatabaseHas('categories', [
             'name' => 'Plat principal',

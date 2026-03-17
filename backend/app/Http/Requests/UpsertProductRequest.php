@@ -27,6 +27,7 @@ class UpsertProductRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:2000'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'stock_quantity' => ['required', 'integer', 'min:0', 'max:999999'],
+            'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:999999'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'image' => ['nullable', 'image', 'max:3072'],
             'is_active' => ['required', 'boolean'],

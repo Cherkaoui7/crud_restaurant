@@ -32,6 +32,8 @@ class DashboardApiTest extends TestCase
             'name' => 'Soup of the day',
             'description' => 'Seasonal vegetables',
             'price' => 6.50,
+            'stock_quantity' => 12,
+            'low_stock_threshold' => 4,
             'category_id' => $starters->id,
             'is_active' => true,
         ]);
@@ -40,6 +42,8 @@ class DashboardApiTest extends TestCase
             'name' => 'Pasta fresca',
             'description' => 'Tomato and basil',
             'price' => 12.90,
+            'stock_quantity' => 3,
+            'low_stock_threshold' => 5,
             'category_id' => $mains->id,
             'is_active' => true,
         ]);
@@ -48,6 +52,8 @@ class DashboardApiTest extends TestCase
             'name' => 'Lemon tart',
             'description' => 'Citrus dessert',
             'price' => 5.90,
+            'stock_quantity' => 0,
+            'low_stock_threshold' => 2,
             'category_id' => $desserts->id,
             'is_active' => false,
         ]);
@@ -56,6 +62,8 @@ class DashboardApiTest extends TestCase
             'name' => 'Archived special',
             'description' => 'No longer visible',
             'price' => 9.50,
+            'stock_quantity' => 7,
+            'low_stock_threshold' => 3,
             'category_id' => $mains->id,
             'is_active' => true,
         ]);
@@ -68,6 +76,9 @@ class DashboardApiTest extends TestCase
             ->assertJsonPath('data.total_products', 3)
             ->assertJsonPath('data.active_products', 2)
             ->assertJsonPath('data.inactive_products', 1)
-            ->assertJsonPath('data.total_categories', 3);
+            ->assertJsonPath('data.total_categories', 3)
+            ->assertJsonPath('data.in_stock_products', 1)
+            ->assertJsonPath('data.low_stock_products', 1)
+            ->assertJsonPath('data.out_of_stock_products', 1);
     }
 }

@@ -731,7 +731,7 @@ p {
 
 .filter-toolbar__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, 0.88fr));
   gap: 0.8rem;
 }
 
@@ -844,6 +844,26 @@ p {
 
 .dashboard-hero__copy p:last-child {
   color: var(--text-soft);
+}
+
+.inventory-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(184, 132, 45, 0.12), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 248, 244, 0.94) 100%);
+}
+
+.inventory-hero__copy {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 42rem;
+}
+
+.inventory-hero__copy h3 {
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
 }
 
 .dashboard-hero__chips {
@@ -1040,6 +1060,78 @@ p {
 
 .dashboard-summary__item strong {
   font-size: 0.96rem;
+}
+
+.inventory-alert-list,
+.inventory-side-panel__links {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.inventory-alert-item {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(19, 63, 57, 0.08);
+  background: rgba(255, 255, 255, 0.84);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.inventory-alert-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(25, 135, 117, 0.18);
+  box-shadow: var(--shadow-sm);
+}
+
+.inventory-alert-item__content {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.inventory-alert-item__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.inventory-alert-item__eyebrow {
+  margin-bottom: 0.16rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.inventory-alert-item h4 {
+  font-size: 1.08rem;
+  line-height: 1;
+}
+
+.inventory-alert-item__copy {
+  color: var(--text-soft);
+}
+
+.inventory-alert-item__badges,
+.inventory-alert-item__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.inventory-alert-item__facts span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.9rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(19, 63, 57, 0.06);
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .profile-hero {
@@ -1647,10 +1739,6 @@ p {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem 0.75rem;
-}
-
-.dialog-card--product .modal-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .modal-field {
@@ -2657,6 +2745,7 @@ p {
   }
 
   .dashboard-hero,
+  .inventory-hero,
   .profile-hero,
   .dashboard-health {
     grid-template-columns: 1fr;
@@ -2670,6 +2759,11 @@ p {
 
   .modifier-row {
     grid-template-columns: 1fr;
+  }
+
+  .inventory-alert-item__header {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Boxes,
   ChevronRight,
   LayoutDashboard,
   LayoutGrid,
@@ -19,6 +20,12 @@ const navigationItems = [
     label: 'Dashboard',
     icon: LayoutDashboard,
     description: 'Vue globale du catalogue',
+  },
+  {
+    to: '/inventory',
+    label: 'Inventory',
+    icon: Boxes,
+    description: 'Stock alerts and restock watch',
   },
   {
     to: '/products',
@@ -48,6 +55,10 @@ const pageMeta = {
   '/products': {
     title: 'Catalogue produits',
     subtitle: 'Oversee menu items, pricing, availability, and product visuals.',
+  },
+  '/inventory': {
+    title: 'Inventory watch',
+    subtitle: 'Track low-stock thresholds, urgent restocks, and stock health across the menu.',
   },
   '/categories': {
     title: 'Gestion des categories',
